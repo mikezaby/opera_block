@@ -11,7 +11,7 @@ begin
   local_exclude = urlfilter[1].gsub("\"","").gsub(/\=UUID.+/, "").downcase.split("\n")
   new_exclude =  "#{urlfilter[0]}[exclude]\n#{(local_exclude+remote_exclude).uniq.join("\n")}"
 rescue Errno::ENOENT
-  puts "Downloading urlfilter.ini from remote server...1"
+  puts "Downloading urlfilter.ini from remote server..."
   new_exclude = Net::HTTP.get URI.parse('http://www.fanboy.co.nz/adblock/opera/urlfilter.ini')
 rescue
   puts "#ERROR - Something is going wrong, maybe remote server is down."
