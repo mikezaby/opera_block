@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+require 'net/http'
+require 'uri'
+require 'etc'
+
+begin
+  file = File.open("#{Etc.getpwuid.dir}/.opera/urlfilter.ini", 'r')
+  puts "Downloading urlfilter.ini from remote server..."
+  remote_exclude = (Net::HTTP.get URI.parse('http://www.fanboy.co.nz/adblock/opera/urlfilter.ini')).split("[exclude]\n")[1].gsub("\"","").gsub(/^;.+/,"").downcase.split("\n")
+  urlfilter =  file.read.split("[exclude]\n")
+  local_exclude = urlfilter[1].gsub("\"","").gsub(/\=UUID.+/, "").downcase.split("\n")
+  new_exclude =  "#{urlfilter[0]}[exclude]\n#{(local_exclude+remote_exclude).uniq.join("\n")}"
+rescue Errno::ENOENT
+  puts "Downloading urlfilter.ini from remote server...1"
+  new_exclude = Net::HTTP.get URI.parse('http://www.fanboy.co.nz/adblock/opera/urlfilter.ini')
+rescue
+  puts "#ERROR - Something is going wrong, maybe remote server is down."
+  exit 0
+ensure
+  file.close unless file.nil?
+end
+begin
+  file1 = File.open("#{Etc.getpwuid.dir}/.opera/urlfilter.ini", 'w')
+  file1.write(new_exclude)
+rescue Errno::EACCES
+  puts "#ERROR - Maybe you don't have write premissions."
+  exit 0
+ensure
+  file1.close unless file1.nil?
+end
+puts "Done!"
